@@ -1,0 +1,49 @@
+=============================================================================
+DRAFT DE SYNTHÈSE - PROJET DEEP LEARNING (EMSI)
+=============================================================================
+À insérer dans les sections correspondantes du rapport Word.
+
+-----------------------------------------------------------------------------
+PARTIE I : QUESTION DE SYNTHÈSE (MLP)
+-----------------------------------------------------------------------------
+Dans quelle mesure un MLP bien paramétré constitue-t-il une solution pertinente pour la classification tabulaire sur un dataset réel, et quelles sont ses principales limites ?
+
+Réponse suggérée (basée sur fiche_synthese_MLP_PyTorch.pdf):
+Le Perceptron Multicouche (MLP) est une architecture universelle capable d'approximer n'importe quelle fonction continue (Théorème d'approximation universelle). Sur des données tabulaires (comme les features MFCC extraites ici), il est pertinent car il capture des interactions non-linéaires entre les attributs grâce aux fonctions d'activation (ReLU/Sigmoid) et à la profondeur ( couches cachées).
+Cependant, nos expériences montrent deux limites majeures :
+1. Initialisation critique : Sans initialisation adaptée (ex: Xavier vs Constante), les gradients peuvent diverger ou s'annuler, empêchant l'apprentissage. Nous avons observé que Xavier stabilise la convergence là où l'initialisation constante échoue.
+2. Absence de biais inductif spatial : Le MLP "aplatit" les données. Il ne sait pas exploiter la structure locale des signaux (ex: un spectrogramme), contrairement aux CNN, ce qui le rend sous-optimal pour les données brutes haute dimension.
+
+-----------------------------------------------------------------------------
+PARTIE II : QUESTION DE SYNTHÈSE (CNN)
+-----------------------------------------------------------------------------
+Pourquoi un CNN est-il plus pertinent qu'un MLP pour une tâche de classification d'images sur un dataset réel, et comment les choix de padding, stride, pooling et profondeur influencent-ils réellement les performances du modèle ?
+
+Réponse suggérée (basée sur fiche_synthese_cnn.pdf):
+Le CNN surpasse le MLP sur les images car il introduit un biais inductif crucial : la "localité" et le "partage de poids". Au lieu de connecter chaque pixel à chaque neurone, le CNN scanne l'image avec des filtres (noyaux) qui détectent des motifs locaux (contours, textures), réduisant drastiquement le nombre de paramètres.
+L'influence des hyperparamètres est directe :
+- Padding : Ajouter un padding (ex: padding=1) préserve les dimensions spatiales et l'information aux bords, évitant la perte de données en bordure d'image.
+- Stride : Un stride > 1 (ex: stride=2) réduit la résolution spatiale (downsampling), augmentant le champ récepteur mais réduisant la précision fine.
+- Pooling : Le MaxPooling rend la représentation invariante aux petites translations, crucial pour la robustesse de la classification.
+
+-----------------------------------------------------------------------------
+PARTIE III : QUESTION DE SYNTHÈSE (RNN/Seq2Seq)
+-----------------------------------------------------------------------------
+Dans quelle mesure les architectures récurrentes permettent-elles de modéliser efficacement une séquence réelle, et comment justifier le passage d'un RNN simple vers un LSTM/GRU puis vers un schéma encodeur–décodeur pour une tâche de génération ?
+
+Réponse suggérée (basée sur synthese_rnn_seq2seq.pdf):
+Les RNN modélisent les séquences en maintenant un état caché (mémoire) $h_t$ qui se propage à chaque pas de temps, permettant de gérer des longueurs variables. Cependant, le RNN simple souffre du problème de "vanishing gradient" sur les longues séquences (BPTT instable).
+Le passage au GRU/LSTM justifie l'ajout de mécanismes de "gating" (portes d'oubli/update) qui préservent l'information à long terme.
+Pour la génération de commandes, le passage au Seq2Seq (Encodeur-Décodeur) est indispensable : l'encodeur compresse la séquence audio en un vecteur de contexte fixe, et le décodeur génère la commande texte mot par mot (autoregressive). L'utilisation du "Teacher Forcing" stabilise l'apprentissage, et le "Beam Search" (au lieu du Greedy) améliore la probabilité globale de la séquence générée (score BLEU), même si elle est plus coûteuse.
+
+-----------------------------------------------------------------------------
+SYNTHÈSE GLOBALE (Question Finale)
+-----------------------------------------------------------------------------
+Comment le deep learning adapte-t-il ses architectures à la structure des données – tabulaire, image et séquentielle ?
+
+Réponse suggérée :
+Le Deep Learning adapte ses architectures via les biais inductifs imposés par la géométrie des données :
+1. Données Tabulaires (MLP) : Données i.i.d sans structure spatiale/temporelle forte. Le MLP dense est suffisant car chaque feature peut interagir avec toutes les autres.
+2. Données Images (CNN) : Forte corrélation locale (pixels voisins) et invariance translationnelle. Le CNN utilise des convolutions locales et un partage de poids pour extraire des hiérarchies de features spatiales.
+3. Données Séquentielles (RNN/Seq2Seq) : Dépendance temporelle stricte ($x_t$ dépend de $x_{t-1}$). L'architecture récurrente impose une boucle de feedback pour modéliser cette dynamique temporelle et gérer des longueurs variables.
+Dans notre projet voix, nous avons appliqué cette logique : MLP sur les vecteurs MFCC (tabulaire), CNN sur les Spectrogrammes (image du son), et Seq2Seq sur les séquences de tokens (texte).

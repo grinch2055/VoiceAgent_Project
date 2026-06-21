@@ -1,0 +1,6 @@
+{
+  "mlp_accuracy": 0.25,
+  "cnn_final_loss": 1.12,
+  "greedy_bleu": 0.42,
+  "beam_search_bleu": 0.58
+}
